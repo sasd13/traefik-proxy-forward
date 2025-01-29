@@ -1,0 +1,11 @@
+displayName: Proxy forward middleware
+type: middleware
+iconPath: .assets/icon.png
+
+import: github.com/sasd13/traefik-proxy-forward
+
+summary: 'Forward requests to Location header'
+
+testData:
+  Headers:
+    X-Api-Key: my-api-key
