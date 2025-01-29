@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	proxy "github.com/sasd13/traefik-proxy-forward"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestProxy(t *testing.T) {
 	cfg := proxy.CreateConfig()
-	cfg.Headers["X-Api-Key"] = "my-api-key"
+	cfg.Headers["X-Api-Key"] = "DEMO_KEY"
 
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
@@ -24,19 +25,12 @@ func TestProxy(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
+	req.Header.Set("Location", "https://api.nasa.gov/planetary/apod")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	handler.ServeHTTP(recorder, req)
 
-	assertHeader(t, req, "X-Api-Key", "my-api-key")
-}
-
-func assertHeader(t *testing.T, req *http.Request, key, expected string) {
-	t.Helper()
-
-	if req.Header.Get(key) != expected {
-		t.Errorf("invalid header value: %s", req.Header.Get(key))
-	}
+	assert.Equal(t, 200, recorder.Result().StatusCode)
 }

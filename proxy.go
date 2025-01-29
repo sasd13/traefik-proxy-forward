@@ -80,7 +80,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 
 		// Copy the response headers and status code
-		p.copyHeadersToResponse(resp.Header, rw)
+		p.copyHeadersToResponse(resp.Header, &rw)
 		rw.WriteHeader(resp.StatusCode)
 
 		// Copy the response body
@@ -115,10 +115,10 @@ func (p *ProxyForward) copyHeadersToRequest(header http.Header, r *http.Request)
 	}
 }
 
-func (p *ProxyForward) copyHeadersToResponse(header http.Header, rw http.ResponseWriter) {
+func (p *ProxyForward) copyHeadersToResponse(header http.Header, rw *http.ResponseWriter) {
 	for key, values := range header {
 		for _, value := range values {
-			rw.Header().Add(key, value)
+			(*rw).Header().Add(key, value)
 		}
 	}
 }
