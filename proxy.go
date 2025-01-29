@@ -1,4 +1,4 @@
-package proxy
+package traefik_proxy_forward
 
 import (
 	"bytes"

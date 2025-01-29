@@ -1,4 +1,4 @@
-package proxy_test
+package traefik_proxy_forward_test
 
 import (
 	"context"
