@@ -45,52 +45,52 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	location := r.Header.Get("Location")
-	if location != "" {
-		log.Printf("Forwarding request to: %s", location)
-
-		// Read and copy the request body
-		reqBody, err := p.readRequestBody(rw, r)
-		if err != nil {
-			log.Printf("Failed to read request body: %v", err)
-			http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
-			return
-		}
-
-		// Create a new request to the Location header
-		req, err := http.NewRequestWithContext(r.Context(), r.Method, location, bytes.NewReader(reqBody))
-		if err != nil {
-			log.Printf("Failed to create request: %v", err)
-			http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
-			return
-		}
-
-		// Copy original headers to the new request
-		p.copyHeadersToRequest(r.Header, req)
-
-		// Copy config headers to the new request
-		p.copyHeadersToRequest(p.headers, req)
-
-		// Perform the request
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Printf("Request failed: %v", err)
-			http.Error(rw, "Failed to forward request", http.StatusBadGateway)
-			return
-		}
-		defer resp.Body.Close()
-
-		// Copy the response headers and status code
-		p.copyHeadersToResponse(resp.Header, &rw)
-		rw.WriteHeader(resp.StatusCode)
-
-		// Copy the response body
-		if _, err := io.Copy(rw, resp.Body); err != nil {
-			log.Printf("Failed to copy response body: %v", err)
-		}
+	if location == "" {
+		p.next.ServeHTTP(rw, r)
 		return
 	}
 
-	p.next.ServeHTTP(rw, r)
+	log.Printf("Forwarding request to: %s", location)
+
+	// Read and copy the request body
+	reqBody, err := p.readRequestBody(rw, r)
+	if err != nil {
+		log.Printf("Failed to read request body: %v", err)
+		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
+		return
+	}
+
+	// Create a new request to the Location header
+	req, err := http.NewRequestWithContext(r.Context(), r.Method, location, bytes.NewReader(reqBody))
+	if err != nil {
+		log.Printf("Failed to create request: %v", err)
+		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
+		return
+	}
+
+	// Copy original headers to the new request
+	p.copyHeadersToRequest(r.Header, req)
+
+	// Copy config headers to the new request
+	p.copyHeadersToRequest(p.headers, req)
+
+	// Perform the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Request failed: %v", err)
+		http.Error(rw, "Failed to forward request", http.StatusBadGateway)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Copy the response headers and status code
+	p.copyHeadersToResponse(resp.Header, &rw)
+	rw.WriteHeader(resp.StatusCode)
+
+	// Copy the response body
+	if _, err := io.Copy(rw, resp.Body); err != nil {
+		log.Printf("Failed to copy response body: %v", err)
+	}
 }
 
 func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) ([]byte, error) {
