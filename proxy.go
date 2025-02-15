@@ -52,7 +52,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	log.Printf("Forwarding request to: %s", location)
 
 	// Read and copy the request body
-	reqBody, err := p.readRequestBody(rw, r)
+	reqBody, err := p.readRequestBody(r)
 	if err != nil {
 		log.Printf("Failed to read request body: %v", err)
 		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
@@ -92,7 +92,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) ([]byte, error) {
+func (p *ProxyForward) readRequestBody(r *http.Request) ([]byte, error) {
 	var body []byte
 	if r.Body != nil {
 		var err error
