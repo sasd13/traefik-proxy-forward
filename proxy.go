@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -97,12 +96,12 @@ func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) 
 	var body []byte
 	if r.Body != nil {
 		var err error
-		body, err = ioutil.ReadAll(r.Body)
+		body, err = io.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
 		}
 		// Reset request body for further use
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 	return body, nil
 }
