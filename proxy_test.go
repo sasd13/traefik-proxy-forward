@@ -17,7 +17,7 @@ func TestProxy(t *testing.T) {
 	cfg.Headers["X-Api-Key"] = "DEMO_KEY"
 
 	ctx := context.Background()
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 
 	handler, err := proxy.New(ctx, next, cfg, "proxy-forward-plugin")
 	if err != nil {

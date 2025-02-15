@@ -24,12 +24,13 @@ func CreateConfig() *Config {
 
 // ProxyForward a Demo plugin.
 type ProxyForward struct {
-	headers  map[string][]string
-	next     http.Handler
-	name     string
+	headers map[string][]string
+	next    http.Handler
+	name    string
 }
 
 // New created a new Demo plugin.
+// revive:disable-next-line unused-parameter.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	headers := make(map[string][]string)
 
@@ -38,9 +39,9 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 
 	return &ProxyForward{
-		headers:  headers,
-		next:     next,
-		name:     name,
+		headers: headers,
+		next:    next,
+		name:    name,
 	}, nil
 }
 
