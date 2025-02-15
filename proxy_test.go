@@ -1,3 +1,5 @@
+// Package traefik_proxy_forward_test provides the tests.
+// revive:disable-next-line var-naming.
 package traefik_proxy_forward_test
 
 import (

@@ -1,3 +1,5 @@
+// Package traefik_proxy_forward provides functionality for forwarding requests.
+// revive:disable-next-line var-naming.
 package traefik_proxy_forward
 
 import (

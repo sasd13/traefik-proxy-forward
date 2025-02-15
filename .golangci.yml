@@ -25,6 +25,8 @@ linters-settings:
       - FIXME
   gofumpt:
     extra-rules: true
+  stylecheck:
+    checks: ["-ST1003"]  # Disables the package naming rule
 
 linters:
   enable-all: true
