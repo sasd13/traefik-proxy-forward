@@ -80,7 +80,12 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Failed to forward request", http.StatusBadGateway)
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Failed to close response body: %v", err)
+		}
+	}()
 
 	// Copy the response headers and status code
 	p.copyHeadersToResponse(resp.Header, &rw)
