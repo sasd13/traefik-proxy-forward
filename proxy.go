@@ -1,10 +1,11 @@
+// Package traefik_proxy_forward provides functionality for forwarding requests.
+// revive:disable-next-line var-naming.
 package traefik_proxy_forward
 
 import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -23,12 +24,13 @@ func CreateConfig() *Config {
 
 // ProxyForward a Demo plugin.
 type ProxyForward struct {
-	headers  map[string][]string
-	next     http.Handler
-	name     string
+	headers map[string][]string
+	next    http.Handler
+	name    string
 }
 
 // New created a new Demo plugin.
+// revive:disable-next-line unused-parameter.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	headers := make(map[string][]string)
 
@@ -37,9 +39,9 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 
 	return &ProxyForward{
-		headers:  headers,
-		next:     next,
-		name:     name,
+		headers: headers,
+		next:    next,
+		name:    name,
 	}, nil
 }
 
@@ -53,7 +55,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	log.Printf("Forwarding request to: %s", location)
 
 	// Read and copy the request body
-	reqBody, err := p.readRequestBody(rw, r)
+	reqBody, err := p.readRequestBody(r)
 	if err != nil {
 		log.Printf("Failed to read request body: %v", err)
 		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
@@ -81,7 +83,12 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Failed to forward request", http.StatusBadGateway)
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Failed to close response body: %v", err)
+		}
+	}()
 
 	// Copy the response headers and status code
 	p.copyHeadersToResponse(resp.Header, &rw)
@@ -93,16 +100,16 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) ([]byte, error) {
+func (p *ProxyForward) readRequestBody(r *http.Request) ([]byte, error) {
 	var body []byte
 	if r.Body != nil {
 		var err error
-		body, err = ioutil.ReadAll(r.Body)
+		body, err = io.ReadAll(r.Body)
 		if err != nil {
 			return nil, err
 		}
 		// Reset request body for further use
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		r.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 	return body, nil
 }
@@ -110,7 +117,11 @@ func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) 
 func (p *ProxyForward) copyHeadersToRequest(header http.Header, r *http.Request) {
 	for key, values := range header {
 		for _, value := range values {
-			r.Header.Add(key, value)
+			if value == "" {
+				r.Header.Del(key)
+			} else {
+				r.Header.Set(key, value)
+			}
 		}
 	}
 }
@@ -118,7 +129,7 @@ func (p *ProxyForward) copyHeadersToRequest(header http.Header, r *http.Request)
 func (p *ProxyForward) copyHeadersToResponse(header http.Header, rw *http.ResponseWriter) {
 	for key, values := range header {
 		for _, value := range values {
-			(*rw).Header().Add(key, value)
+			(*rw).Header().Set(key, value)
 		}
 	}
 }

@@ -1,7 +1,7 @@
 run:
   timeout: 3m
   skip-files: []
-  skip-dirs: []
+  skip-dirs: ["vendor"]
 
 linters-settings:
   govet:
@@ -25,6 +25,8 @@ linters-settings:
       - FIXME
   gofumpt:
     extra-rules: true
+  stylecheck:
+    checks: ["-ST1003"]  # Disables the package naming rule
 
 linters:
   enable-all: true
