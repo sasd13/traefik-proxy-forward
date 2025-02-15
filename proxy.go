@@ -110,7 +110,11 @@ func (p *ProxyForward) readRequestBody(rw http.ResponseWriter, r *http.Request) 
 func (p *ProxyForward) copyHeadersToRequest(header http.Header, r *http.Request) {
 	for key, values := range header {
 		for _, value := range values {
-			r.Header.Add(key, value)
+			if value == "" {
+				r.Header.Del(key)
+			} else {
+				r.Header.Set(key, value)
+			}
 		}
 	}
 }
@@ -118,7 +122,7 @@ func (p *ProxyForward) copyHeadersToRequest(header http.Header, r *http.Request)
 func (p *ProxyForward) copyHeadersToResponse(header http.Header, rw *http.ResponseWriter) {
 	for key, values := range header {
 		for _, value := range values {
-			(*rw).Header().Add(key, value)
+			(*rw).Header().Set(key, value)
 		}
 	}
 }
