@@ -10,6 +10,10 @@ import (
 	"net/http"
 )
 
+const (
+	errForwardingFailed = "Failed to forward request"
+)
+
 // Config the plugin configuration.
 type Config struct {
 	Headers map[string]string `json:"headers,omitempty"`
@@ -22,14 +26,14 @@ func CreateConfig() *Config {
 	}
 }
 
-// ProxyForward a Demo plugin.
+// ProxyForward plugin struct.
 type ProxyForward struct {
 	headers map[string][]string
 	next    http.Handler
 	name    string
 }
 
-// New created a new Demo plugin.
+// New created a new ProxyForward plugin.
 // revive:disable-next-line unused-parameter.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	headers := make(map[string][]string)
@@ -58,7 +62,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	reqBody, err := p.readRequestBody(r)
 	if err != nil {
 		log.Printf("Failed to read request body: %v", err)
-		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
+		http.Error(rw, errForwardingFailed, http.StatusInternalServerError)
 		return
 	}
 
@@ -66,7 +70,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequestWithContext(r.Context(), r.Method, location, bytes.NewReader(reqBody))
 	if err != nil {
 		log.Printf("Failed to create request: %v", err)
-		http.Error(rw, "Failed to forward request", http.StatusInternalServerError)
+		http.Error(rw, errForwardingFailed, http.StatusInternalServerError)
 		return
 	}
 
@@ -80,7 +84,7 @@ func (p *ProxyForward) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("Request failed: %v", err)
-		http.Error(rw, "Failed to forward request", http.StatusBadGateway)
+		http.Error(rw, errForwardingFailed, http.StatusBadGateway)
 		return
 	}
 
